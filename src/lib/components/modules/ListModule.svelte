@@ -110,9 +110,11 @@
 					oninput={(e) => setValue(i, (e.currentTarget as HTMLInputElement).value)}
 				/>
 				<button
-					class="badge badge-xs cursor-pointer {highlighted.includes(i)
-						? 'badge-primary'
-						: 'badge-ghost'}"
+					class="h-2.5 w-2.5 cursor-pointer rounded-full border transition {highlighted.includes(
+						i
+					)
+						? 'bg-primary border-primary'
+						: 'border-base-content/30 hover:border-primary bg-transparent'}"
 					onclick={() => toggleHighlight(i)}
 					aria-label="Toggle pointer"
 				></button>
