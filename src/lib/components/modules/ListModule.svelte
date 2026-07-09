@@ -15,7 +15,9 @@
 
 	const save = debounce(() => {
 		updateModule(module.id, {
-			data: { label, items, highlighted } satisfies ListData
+			// $state proxies aren't structured-cloneable (IndexedDB requirement) —
+			// snapshot to plain arrays/objects before persisting.
+			data: $state.snapshot({ label, items, highlighted }) satisfies ListData
 		});
 	}, 350);
 

@@ -14,7 +14,7 @@
 	let testCases = $state<TestCase[]>(initial.testCases.map((t) => ({ ...t })));
 
 	const save = debounce(() => {
-		updateModule(module.id, { data: { code, testCases } satisfies PythonData });
+		updateModule(module.id, { data: $state.snapshot({ code, testCases }) satisfies PythonData });
 	}, 400);
 
 	$effect(() => {

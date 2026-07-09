@@ -11,7 +11,7 @@
 	let rows = $state<string[][]>(initial.rows.map((r) => [...r]));
 
 	const save = debounce(() => {
-		updateModule(module.id, { data: { columns, rows } satisfies TraceData });
+		updateModule(module.id, { data: $state.snapshot({ columns, rows }) satisfies TraceData });
 	}, 350);
 
 	$effect(() => {
