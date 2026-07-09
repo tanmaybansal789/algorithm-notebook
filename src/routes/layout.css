@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@plugin 'daisyui' {
+	themes:
+		nord --default,
+		dim --prefersdark;
+}
+
+@import 'katex/dist/katex.min.css';
+
+:root {
+	--radius-box: 0.5rem;
+}
+
