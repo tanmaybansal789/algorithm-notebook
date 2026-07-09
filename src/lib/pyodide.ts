@@ -1,9 +1,10 @@
-// Loads the Pyodide (CPython-in-WebAssembly) runtime from a CDN on first use.
-// Kept as a module-level singleton so switching between Python modules in the
-// same session reuses the already-booted interpreter instead of reloading it.
+// Loads the Pyodide (CPython-in-WebAssembly) runtime, vendored at build time
+// into static/pyodide (see scripts/copy-pyodide.mjs) so it runs same-origin
+// with no external CDN dependency. Kept as a module-level singleton so
+// switching between Python modules in the same session reuses the
+// already-booted interpreter instead of reloading it.
 
-const PYODIDE_VERSION = '0.28.3';
-const CDN_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+const INDEX_URL = '/pyodide/';
 
 export interface PyodideInterface {
 	runPythonAsync(code: string): Promise<unknown>;
@@ -37,9 +38,9 @@ function loadScript(src: string): Promise<void> {
 export function getPyodide(): Promise<PyodideInterface> {
 	if (!pyodidePromise) {
 		pyodidePromise = (async () => {
-			await loadScript(`${CDN_BASE}pyodide.js`);
+			await loadScript(`${INDEX_URL}pyodide.js`);
 			if (!window.loadPyodide) throw new Error('Pyodide failed to initialize.');
-			return window.loadPyodide({ indexURL: CDN_BASE });
+			return window.loadPyodide({ indexURL: INDEX_URL });
 		})();
 	}
 	return pyodidePromise;

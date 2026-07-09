@@ -21,3 +21,6 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Vendored at postinstall from the pyodide npm package (see scripts/copy-pyodide.mjs)
+/static/pyodide

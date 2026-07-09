@@ -59,6 +59,38 @@
 
 	const activeModule = $derived(orderedModules.find((m) => m.id === activeModuleId));
 
+	// Load the editor component for the active module out-of-band rather than
+	// with `{#await}` in the template: `activeModule` is a live $derived value,
+	// so if it changes type while a previous import is still in flight, a
+	// naive `{#await}` can resolve *after* the switch and render the old
+	// component against the new module's (differently-shaped) data. Guarding
+	// with a cancelled flag keyed to the request ensures only the load that
+	// matches the current module ever gets applied.
+	let activeComponent = $state<Component<{ module: NotebookModule }> | null>(null);
+	let activeComponentForId = $state<string | null>(null);
+	let loadError = $state<string | null>(null);
+
+	$effect(() => {
+		const target = activeModule;
+		let cancelled = false;
+		if (target) {
+			moduleLoaders[target.type]()
+				.then((mod) => {
+					if (cancelled) return;
+					activeComponent = mod.default;
+					activeComponentForId = target.id;
+					loadError = null;
+				})
+				.catch((err: unknown) => {
+					if (cancelled) return;
+					loadError = err instanceof Error ? err.message : String(err);
+				});
+		}
+		return () => {
+			cancelled = true;
+		};
+	});
+
 	const moduleTypes: ModuleType[] = ['note', 'graph', 'list', 'trace', 'python', 'excalidraw'];
 
 	async function onAddModule(type: ModuleType) {
@@ -155,22 +187,22 @@
 
 			<div class="min-w-0 flex-1">
 				{#if activeModule}
-					{#key activeModule.id}
-						<ModuleShell module={activeModule}>
-							{#await moduleLoaders[activeModule.type]()}
-								<div class="flex h-full items-center justify-center">
-									<span class="loading loading-spinner loading-md text-base-content/40"></span>
-								</div>
-							{:then mod}
-								{@const Comp = mod.default}
+					{#if loadError && activeComponentForId !== activeModule.id}
+						<div class="text-error flex h-full items-center justify-center p-6 text-center text-sm">
+							Failed to load this module: {loadError}
+						</div>
+					{:else if activeComponent && activeComponentForId === activeModule.id}
+						{#key activeModule.id}
+							{@const Comp = activeComponent}
+							<ModuleShell module={activeModule}>
 								<Comp module={activeModule} />
-							{:catch err}
-								<div class="text-error flex h-full items-center justify-center p-6 text-center text-sm">
-									Failed to load this module: {err instanceof Error ? err.message : String(err)}
-								</div>
-							{/await}
-						</ModuleShell>
-					{/key}
+							</ModuleShell>
+						{/key}
+					{:else}
+						<div class="flex h-full items-center justify-center">
+							<span class="loading loading-spinner loading-md text-base-content/40"></span>
+						</div>
+					{/if}
 				{:else}
 					<div class="flex h-full flex-col items-center justify-center gap-3 text-center">
 						<span class="text-4xl">🧩</span>
